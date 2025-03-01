@@ -2,3 +2,6 @@ flask
 flask-cors
 schedule
 gunicorn
+g4f
+time
+os
