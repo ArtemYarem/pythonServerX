@@ -30,7 +30,7 @@ def get_description():
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user",
-                   "content": f"Одним словом опиши комп'ютер з характеристиками: {param1}, {param2}, {param3}, {param4}, {param5}, {param6}, {param7}, {param8}  українською всі літери з великої типу: ХОРОШИЙ або ПОГАНИЙ і тд"}],
+                   "content": f"Одним словом опиши комп'ютер з характеристиками: {param1}, {param2}, {param3}, {param4}, {param5}, {param6}, {param7}, {param8}  англійською всі літери з великої типу: ХОРОШИЙ або ПОГАНИЙ і тд"}],
         web_search=False
     )
 
