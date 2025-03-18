@@ -1,28 +1,25 @@
 from flask import Flask, request, jsonify
 from g4f.client import Client
-import os
-import schedule
-import time
-import threading
-from flask_cors import CORS
 import json
+from flask_cors import CORS
 
-file_path = "playerData.json"  
-
+# Читаємо JSON-файл
+file_path = "playerData.json"
 with open(file_path, "r", encoding="utf-8") as file:
-    ind = json.load(file)
+    data = json.load(file)
+
+# Отримуємо значення ind
+ind = data.get("ind", 0)  # Якщо ключа немає, буде 0
 
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/get_description', methods=['POST'])
+def get_description():
+    data = request.json
+    client = Client()
 
-read_data = None
-
-if ind == 1:
-    @app.route('/get_description', methods=['POST'])
-    def get_description():
-        data = request.json
-    
+    if ind == 1:
         param1 = data.get('paramr1')
         param2 = data.get('paramr2')
         param3 = data.get('paramr3')
@@ -54,7 +51,6 @@ if ind == 1:
         param29 = data.get('paramr29')
         param30 = data.get('paramr30')
     
-        client = Client()
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user",
@@ -62,19 +58,10 @@ if ind == 1:
             web_search=False
         )
 
-    description = response.choices[0].message.content
-    return jsonify({"description": description})
-
-
-if ind == 2:
-    @app.route('/get_description', methods=['POST'])
-    def get_description():
-        data = request.json
-
+    elif ind == 2:
         param31 = data.get('paramrx')
         param32 = data.get('paramry')
 
-        client = Client()
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user",
@@ -82,16 +69,11 @@ if ind == 2:
             web_search=False
         )
 
+    else:
+        return jsonify({"description": "Невідомий індекс"})
+
     description = response.choices[0].message.content
     return jsonify({"description": description})
-    
-
-
-
-
-
-    
-    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
