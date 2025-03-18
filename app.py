@@ -2,21 +2,6 @@ from flask import Flask, request, jsonify
 from g4f.client import Client
 import json
 from flask_cors import CORS
-import os
-
-# Замість Desktop використовуємо поточну робочу директорію сервера
-file_path = os.path.join(os.getcwd(), "playerData.txt")
-
-# Перевіряємо, чи існує файл перед його відкриттям
-if os.path.exists(file_path):
-    with open(file_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-else:
-    # Якщо файл не існує, створюємо його (можна змінити цей процес для створення за потреби)
-    raise FileNotFoundError(f"Файл за шляхом {file_path} не знайдений!")
-
-# Отримуємо значення ind
-ind = data.get("ind", 0)  # Якщо ключа немає, буде 0
 
 app = Flask(__name__)
 CORS(app)
@@ -24,6 +9,8 @@ CORS(app)
 @app.route('/get_description', methods=['POST'])
 def get_description():
     data = request.json
+    ind = data.get("ind", 0)  # Отримуємо значення ind з запиту
+
     client = Client()
 
     if ind == 1:
@@ -57,7 +44,7 @@ def get_description():
         param28 = data.get('paramr28')
         param29 = data.get('paramr29')
         param30 = data.get('paramr30')
-    
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user",
@@ -71,8 +58,7 @@ def get_description():
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user",
-                       "content": f"Напиши привіт"}],
+            messages=[{"role": "user", "content": "Напиши привіт"}],
             web_search=False
         )
 
