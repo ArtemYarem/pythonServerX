@@ -7,6 +7,11 @@ import os
 # Задаємо шлях до файлу через змінну середовища або використовуємо дефолтний шлях
 file_path = os.getenv("PLAYER_DATA_PATH", "/opt/render/data/playerData.json")
 
+# Перевіряємо, чи існує директорія для файлу, якщо немає — створюємо її
+dir_name = os.path.dirname(file_path)
+if not os.path.exists(dir_name):
+    os.makedirs(dir_name)
+
 # Перевіряємо, чи існує файл перед його відкриттям
 if os.path.exists(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
