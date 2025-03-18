@@ -4,15 +4,18 @@ import json
 from flask_cors import CORS
 import os
 
-# Задаємо шлях до файлу playerData.json, який використовує Unity
-file_path = os.path.join(os.path.expanduser("~"), "AppData", "LocalLow", "CompanyName", "GameName", "playerData.json")
+# Задаємо шлях до файлу через змінну середовища або використовуємо дефолтний шлях
+file_path = os.getenv("PLAYER_DATA_PATH", "/opt/render/data/playerData.json")
 
 # Перевіряємо, чи існує файл перед його відкриттям
 if os.path.exists(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
         data = json.load(file)
 else:
-    raise FileNotFoundError(f"Файл за шляхом {file_path} не знайдений!")
+    # Якщо файл не існує, створюємо його з дефолтними значеннями
+    data = {"ind": 0}
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(data, file)
 
 # Отримуємо значення ind
 ind = data.get("ind", 0)  # Якщо ключа немає, буде 0
