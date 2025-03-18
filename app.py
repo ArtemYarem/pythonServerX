@@ -4,7 +4,8 @@ import json
 from flask_cors import CORS
 
 # Читаємо JSON-файл
-file_path = "C:\\Users\\Артем\\AppData\\LocalLow\\RGRW\\SynapBizR\\playerData.json"
+file_path = "data/playerData.json"
+
 with open(file_path, "r", encoding="utf-8") as file:
     data = json.load(file)
 
