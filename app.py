@@ -18,7 +18,7 @@ CORS(app)
 
 read_data = None
 
-if ind = 1:
+if ind == 1:
     @app.route('/get_description', methods=['POST'])
     def get_description():
         data = request.json
@@ -66,7 +66,7 @@ if ind = 1:
     return jsonify({"description": description})
 
 
-if ind = 2:
+if ind == 2:
     @app.route('/get_description', methods=['POST'])
     def get_description():
         data = request.json
