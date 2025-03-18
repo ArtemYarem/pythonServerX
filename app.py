@@ -2,12 +2,17 @@ from flask import Flask, request, jsonify
 from g4f.client import Client
 import json
 from flask_cors import CORS
+import os
 
-# Читаємо JSON-файл
-file_path = "data/playerData.json"
+# Задаємо шлях до файлу на робочому столі
+file_path = "C:\\Users\\Артем\\Desktop\\playerData.json"
 
-with open(file_path, "r", encoding="utf-8") as file:
-    data = json.load(file)
+# Перевіряємо, чи існує файл перед його відкриттям
+if os.path.exists(file_path):
+    with open(file_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
+else:
+    raise FileNotFoundError(f"Файл за шляхом {file_path} не знайдений!")
 
 # Отримуємо значення ind
 ind = data.get("ind", 0)  # Якщо ключа немає, буде 0
@@ -55,7 +60,7 @@ def get_description():
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user",
-                       "content": f"Дуже коротко опиши які витрати можна в бізнесі скоротити (алев кінці напиши щось типу вибір за вами)   RENT: {param1}, UTILITIES: {param2}, SALARIES: {param3}, TAXES: {param4}, OFFICE SUPPLIES: {param5}, MARKETING: {param6}, MATERIALS: {param7}, LOGISTICS: {param8}, INSURANCE: {param9}, EQUIPMENT: {param10}, MAINTENANCE: {param11}, WEBSITE COSTS: {param12}, SOFTWARE: {param13}, BANK FEES: {param14}, LICENSES: {param15}, CONSULTING: {param16}, TRAINING: {param17}, TRAVEL: {param18}, CLIENT MEETINGS: {param19}, SECURITY: {param20}, RENT: {param21}, R&D: {param22}, CERTIFICATION: {param23}, WASTE DISPOSAL: {param24}, PACKAGING: {param25}, DISCOUNTS: {param26}, PARTNERSHIPS: {param27}, PHONE & INTERNET: {param28}, CHARITY: {param29}, OTHERS: {param30}  англійською та всі літери з великої"}],
+                       "content": f"Дуже коротко опиши які витрати можна в бізнесі скоротити (але в кінці напиши щось типу вибір за вами)   RENT: {param1}, UTILITIES: {param2}, SALARIES: {param3}, TAXES: {param4}, OFFICE SUPPLIES: {param5}, MARKETING: {param6}, MATERIALS: {param7}, LOGISTICS: {param8}, INSURANCE: {param9}, EQUIPMENT: {param10}, MAINTENANCE: {param11}, WEBSITE COSTS: {param12}, SOFTWARE: {param13}, BANK FEES: {param14}, LICENSES: {param15}, CONSULTING: {param16}, TRAINING: {param17}, TRAVEL: {param18}, CLIENT MEETINGS: {param19}, SECURITY: {param20}, RENT: {param21}, R&D: {param22}, CERTIFICATION: {param23}, WASTE DISPOSAL: {param24}, PACKAGING: {param25}, DISCOUNTS: {param26}, PARTNERSHIPS: {param27}, PHONE & INTERNET: {param28}, CHARITY: {param29}, OTHERS: {param30} англійською та всі літери з великої"}],
             web_search=False
         )
 
