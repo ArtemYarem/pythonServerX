@@ -58,7 +58,7 @@ def get_description():
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": "Напиши привіт"}],
+            messages=[{"role": "user", "content": f"Дуже коротко опиши як створити бізнес на тему {param31} з бюджетом в {param32}"}],
             web_search=False
         )
 
