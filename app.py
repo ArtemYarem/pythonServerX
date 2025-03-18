@@ -5,7 +5,7 @@ from flask_cors import CORS
 import os
 
 # Задаємо шлях до файлу на робочому столі
-file_path = "C:\\Users\\Артем\\Desktop\\playerData.json"
+file_path = os.path.join(os.path.expanduser("~"), "Desktop", "playerData.txt")
 
 # Перевіряємо, чи існує файл перед його відкриттям
 if os.path.exists(file_path):
