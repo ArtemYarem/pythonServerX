@@ -2,3 +2,4 @@ flask
 g4f
 pillow
 opencv-python
+gunicorn
