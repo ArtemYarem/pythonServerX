@@ -1,7 +1,4 @@
 flask
-flask-cors
-schedule
-gunicorn
 g4f
-PIL
-io
+pillow
+opencv-python
