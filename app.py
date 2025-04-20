@@ -1,30 +1,36 @@
 from flask import Flask, request, jsonify
-from g4f.client import Client
-import json
-from flask_cors import CORS
+from PIL import Image
+import io
+import g4f
 
 app = Flask(__name__)
-CORS(app)
 
-@app.route('/get_description', methods=['POST'])
-def get_description():
-    data = request.json
-    ind = data.get("ind", 0)  # Отримуємо значення ind з запиту
+@app.route('/analyze', methods=['POST'])
+def analyze_image():
+    image = request.files['image']
+    image_bytes = image.read()
 
-    client = Client()
+    # Можеш зберегти тимчасово
+    img = Image.open(io.BytesIO(image_bytes))
+    img.save("last_upload.jpg")  # опціонально
 
-    param1 = data.get('paramrr1')
-    param2 = data.get('paramrr2')
+    # Запит до ШІ
+    prompt = "На цьому фото зображено екологічне завдання. Чи виконане воно правильно? Відповідай 'correct' або 'incorrect'."
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user",
-                   "content": f"Дуже дуже дуже коротко (приблизно 5 - 10 слів) опиши стан людини якщо уважність людини(від 0 до 1): {param1}, а стресс, засмученість(від 0 до 1): {param2}, напиши англійською та всі літери з великої"}],
-        web_search=False
+    # передай картинку, наприклад, у base64, або текстово
+    result = g4f.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "user", "content": prompt},
+            {"role": "user", "content": "Фото виконаного завдання надано (уяви його, або опиши)."},
+        ]
     )
 
-    description = response.choices[0].message.content
-    return jsonify({"description": description})
+    response = result.lower()
+    if "correct" in response:
+        return "correct"
+    else:
+        return "incorrect"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host="0.0.0.0", port=5000)
