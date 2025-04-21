@@ -21,9 +21,16 @@ def analyze_image():
         image = request.files['image']
         image_bytes = image.read()
 
-        # Можеш зберегти тимчасово для перевірки
+        # Відкриваємо зображення
         img = Image.open(io.BytesIO(image_bytes))
-        img.save("last_upload.jpg")  # зберігає зображення на диск (опціонально)
+
+        # Якщо зображення в режимі RGBA, конвертуємо його в RGB
+        if img.mode == 'RGBA':
+            img = img.convert('RGB')
+            logging.debug("Зображення конвертовано з RGBA в RGB.")
+
+        # Можеш зберегти тимчасово для перевірки
+        img.save("last_upload.jpg", 'JPEG')  # Зберігає як JPEG
 
         logging.debug("Зображення успішно отримано та оброблено.")
 
