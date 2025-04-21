@@ -5,7 +5,7 @@ import g4f
 
 app = Flask(__name__)
 
-@app.route('/analyze', methods=['POST'])
+@app.route('/get_description', methods=['POST'])
 def analyze_image():
     image = request.files['image']
     image_bytes = image.read()
