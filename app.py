@@ -35,7 +35,7 @@ def analyze_image():
         logging.debug("Зображення успішно отримано та оброблено.")
 
         # Створюємо запит до ШІ
-        prompt = "На цьому фото зображено екологічне завдання. Чи виконане воно правильно? Відповідай 'correct' або 'incorrect'."
+        prompt = "На цьому фото зображено екологічне завдання. Чи виконане воно правильно? Відповідай 'correct' або 'incorrect' (лише 1 словом)."
 
         # Перетворюємо зображення у base64
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
@@ -56,7 +56,7 @@ def analyze_image():
 
         # Отримуємо відповідь від моделі
         response = result.lower()
-        if "correct" in response:
+        if response == "correct":
             logging.info("Завдання виконано правильно.")
             return "correct"
         else:
