@@ -13,7 +13,7 @@ app = Flask(__name__)
 @app.route('/get_description', methods=['POST'])
 def analyze_image():
     try:
-        # Перевірка наявності зображення в запиті
+        # Перевірка наявності зображення
         if 'image' not in request.files:
             logging.error("Зображення не знайдено в запиті.")
             return jsonify({"error": "Зображення не знайдено в запиті."}), 400
@@ -21,41 +21,51 @@ def analyze_image():
         image = request.files['image']
         image_bytes = image.read()
 
-        # Відкриваємо зображення
-        img = Image.open(io.BytesIO(image_bytes))
+        # Перевірка валідності зображення
+        try:
+            img = Image.open(io.BytesIO(image_bytes))
+            img.verify()  # Перевірка валідності
+            img = Image.open(io.BytesIO(image_bytes))  # Повторне відкриття після verify()
+        except Exception as img_error:
+            logging.error(f"Помилка при обробці зображення: {img_error}")
+            return jsonify({"error": "Невалідне зображення"}), 400
 
-        # Якщо зображення в режимі RGBA, конвертуємо його в RGB
+        # Якщо RGBA — конвертувати в RGB
         if img.mode == 'RGBA':
             img = img.convert('RGB')
             logging.debug("Зображення конвертовано з RGBA в RGB.")
 
-        # Можеш зберегти тимчасово для перевірки
-        img.save("last_upload.jpg", 'JPEG')  # Зберігає як JPEG
+        # Збереження для перевірки
+        img.save("last_upload.jpg", 'JPEG')
 
-        logging.debug("Зображення успішно отримано та оброблено.")
+        logging.debug("Зображення успішно збережено та підготовлено.")
 
-        # Створюємо запит до ШІ
-        prompt = "Чи робиться на цьому фото щось екологічне? Відповідай 'correct' якщо так або 'incorrect' якщо ні (лише 1 словом). Наприклад correct або incorrect"
+        # Запит до ШІ
+        prompt = "Чи робиться на цьому фото щось екологічне? Відповідай 'correct' якщо так або 'incorrect' якщо ні (лише 1 словом)."
 
-        # Перетворюємо зображення у base64
+        # Перетворення в base64
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-
         logging.debug("Перетворення зображення в base64 завершено.")
 
-        # Виконуємо запит до моделі g4f
-        result = g4f.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "user", "content": prompt},
-                {"role": "user", "content": "Фото виконаного завдання надано (уяви його, або опиши)."},
-                {"role": "system", "content": f"Фото в base64: {image_base64}"}
-            ]
-        )
+        # Виклик g4f
+        try:
+            logging.debug("Запит до g4f розпочато.")
+            result = g4f.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "user", "content": prompt},
+                    {"role": "user", "content": "Фото виконаного завдання надано (уяви його, або опиши)."},
+                    {"role": "system", "content": f"Фото в base64: {image_base64}"}
+                ]
+            )
+            logging.debug(f"Відповідь від g4f: {result}")
 
-        logging.debug("Запит до моделі завершено.")
+            response = result.lower().strip()
+        except Exception as gpt_error:
+            logging.error(f"Помилка у g4f: {gpt_error}")
+            return jsonify({"error": f"g4f error: {str(gpt_error)}"}), 500
 
-        # Отримуємо відповідь від моделі
-        response = result.lower()
+        # Обробка відповіді
         if response == "correct":
             logging.info("Завдання виконано правильно.")
             return "correct"
@@ -64,8 +74,7 @@ def analyze_image():
             return "incorrect"
 
     except Exception as e:
-        # Логування помилки
-        logging.error(f"Помилка: {str(e)}")
+        logging.error(f"Загальна помилка: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
