@@ -4,15 +4,28 @@ import io
 import g4f
 import base64
 import logging
+import signal
 
 # Налаштування логування
 logging.basicConfig(level=logging.DEBUG)
+
+# Тайм-аут в секундах
+TIMEOUT = 120  # Збільшіть це значення для довших запитів
+
+# Функція для обробки тайм-ауту
+def timeout_handler(signum, frame):
+    raise TimeoutError("Запит перевищує максимальний ліміт часу")
+
+signal.signal(signal.SIGALRM, timeout_handler)
 
 app = Flask(__name__)
 
 @app.route('/get_description', methods=['POST'])
 def analyze_image():
     try:
+        # Встановлюємо тайм-аут на час виконання запиту
+        signal.alarm(TIMEOUT)  # Встановлює тайм-аут
+
         # Перевірка наявності зображення
         if 'image' not in request.files:
             logging.error("Зображення не знайдено в запиті.")
@@ -56,7 +69,8 @@ def analyze_image():
                     {"role": "user", "content": prompt},
                     {"role": "user", "content": "Фото виконаного завдання надано (уяви його, або опиши)."},
                     {"role": "system", "content": f"Фото в base64: {image_base64}"}
-                ]
+                ],
+                timeout=TIMEOUT  # Встановлення тайм-ауту для запиту до g4f
             )
             logging.debug(f"Відповідь від g4f: {result}")
 
@@ -73,9 +87,14 @@ def analyze_image():
             logging.info("Завдання виконано неправильно.")
             return "incorrect"
 
+    except TimeoutError as e:
+        logging.error("Запит перевищив максимальний час.")
+        return jsonify({"error": "Запит перевищив максимальний час."}), 504
     except Exception as e:
         logging.error(f"Загальна помилка: {str(e)}")
         return jsonify({"error": str(e)}), 500
+    finally:
+        signal.alarm(0)  # Скидає сигнал тайм-ауту
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
