@@ -10,7 +10,7 @@ import signal
 logging.basicConfig(level=logging.DEBUG)
 
 # Тайм-аут в секундах
-TIMEOUT = 120  # Збільшіть це значення для довших запитів
+TIMEOUT = 999  # Збільшіть це значення для довших запитів
 
 # Функція для обробки тайм-ауту
 def timeout_handler(signum, frame):
