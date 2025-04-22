@@ -1,5 +1,4 @@
 flask
-g4f
 pillow
-opencv-python
+g4f
 gunicorn
