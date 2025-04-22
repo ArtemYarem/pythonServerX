@@ -13,6 +13,7 @@ app = Flask(__name__)
 @app.route('/get_description', methods=['POST'])
 def analyze_image():
     try:
+        # Перевірка наявності зображення в запиті
         if 'image' not in request.files:
             logging.error("Зображення не знайдено в запиті.")
             return jsonify({"error": "Зображення не знайдено в запиті."}), 400
@@ -23,39 +24,47 @@ def analyze_image():
         # Відкриваємо зображення
         img = Image.open(io.BytesIO(image_bytes))
 
+        # Якщо зображення в режимі RGBA, конвертуємо його в RGB
         if img.mode == 'RGBA':
             img = img.convert('RGB')
             logging.debug("Зображення конвертовано з RGBA в RGB.")
 
-        img.save("last_upload.jpg", 'JPEG')
-        logging.debug("Зображення успішно отримано та збережено.")
+        # Можеш зберегти тимчасово для перевірки
+        img.save("last_upload.jpg", 'JPEG')  # Зберігає як JPEG
 
-        # Підготовка запиту
-        prompt = "Чи робиться на цьому фото щось екологічне? Відповідай 'correct' якщо так або 'incorrect' якщо ні (одним словом)."
+        logging.debug("Зображення успішно отримано та оброблено.")
 
+        # Створюємо запит до ШІ
+        prompt = "Чи робиться на цьому фото щось екологічне? Відповідай 'correct' якщо так або 'incorrect' якщо ні (лише 1 словом). Наприклад correct або incorrect"
+
+        # Перетворюємо зображення у base64
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-        if len(image_base64) > 2_000_000:
-            logging.warning("base64 зображення обрізано через розмір.")
-            image_base64 = image_base64[:2_000_000]
 
-        try:
-            result = g4f.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "user", "content": prompt},
-                    {"role": "user", "content": "Фото виконаного завдання надано (уяви його, або опиши)."},
-                    {"role": "system", "content": f"Фото в base64: {image_base64}"}
-                ]
-            )
-            response = result.strip().lower() if result else "incorrect"
-        except Exception as e:
-            logging.error(f"g4f помилка: {str(e)}")
-            response = "incorrect"
+        logging.debug("Перетворення зображення в base64 завершено.")
 
-        logging.info(f"Відповідь AI: {response}")
-        return response
+        # Виконуємо запит до моделі g4f
+        result = g4f.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "user", "content": prompt},
+                {"role": "user", "content": "Фото виконаного завдання надано (уяви його, або опиши)."},
+                {"role": "system", "content": f"Фото в base64: {image_base64}"}
+            ]
+        )
+
+        logging.debug("Запит до моделі завершено.")
+
+        # Отримуємо відповідь від моделі
+        response = result.lower()
+        if response == "correct":
+            logging.info("Завдання виконано правильно.")
+            return "correct"
+        else:
+            logging.info("Завдання виконано неправильно.")
+            return "incorrect"
 
     except Exception as e:
+        # Логування помилки
         logging.error(f"Помилка: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
