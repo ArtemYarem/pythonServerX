@@ -7,7 +7,7 @@ import uuid
 import subprocess
 
 app = Flask(__name__)
-model = whisper.load_model("base")
+model = whisper.load_model("tiny")
 
 def text_to_speech(text, output_path):
     subprocess.run(["RHVoice-client", "-s", "Vlad", "-o", output_path], input=text.encode("utf-8"))
