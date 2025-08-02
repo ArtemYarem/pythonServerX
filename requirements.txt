@@ -5,3 +5,4 @@ whisper
 soundfile
 numpy
 g4f
+gunicorn
