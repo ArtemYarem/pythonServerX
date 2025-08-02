@@ -1,34 +1,50 @@
-from flask import Flask, request, jsonify
-import g4f
-import logging
+from flask import Flask, request, send_file
+import whisper
+import os
+import torch
+import soundfile as sf
+import uuid
+import subprocess
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+model = whisper.load_model("base")
 
-@app.route('/analyze_text', methods=['POST'])
-def analyze_text():
+def text_to_speech(text, output_path):
+    subprocess.run(["RHVoice-client", "-s", "Vlad", "-o", output_path], input=text.encode("utf-8"))
+
+def process_command(text):
+    if text.lower().startswith("завдання"):
+        prompt = text[9:].strip()
+        # Замість цього встав свій LLaMA або локальний AI
+        # Заглушка:
+        response = f"Відповідь на запит: {prompt} — це {eval(prompt) if prompt.replace(' ', '').isdigit() else '42'}"
+        return response
+    else:
+        return "Команду не розпізнано."
+
+@app.route("/ask", methods=["POST"])
+def handle_audio():
+    audio = request.files["file"]
+    temp_input = f"temp_{uuid.uuid4()}.wav"
+    temp_output = f"reply_{uuid.uuid4()}.wav"
+    audio.save(temp_input)
+
     try:
-        data = request.get_json()
-        if not data or 'text' not in data:
-            return jsonify({"error": "Очікується поле 'text' у JSON"}), 400
+        result = model.transcribe(temp_input, language="uk")
+        text = result["text"].strip()
+        print("Почуто:", text)
 
-        prompt = data['text']
-        logging.debug(f"Отримано текст: {prompt}")
+        response = process_command(text)
+        print("Відповідь:", response)
 
-        # Запит до g4f
-        result = g4f.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+        text_to_speech(response, temp_output)
 
-        logging.debug(f"Відповідь від g4f: {result}")
-        return jsonify({"response": result.strip()})
-
+        return send_file(temp_output, mimetype="audio/wav")
     except Exception as e:
-        logging.error(f"Помилка: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return str(e), 500
+    finally:
+        if os.path.exists(temp_input): os.remove(temp_input)
+        if os.path.exists(temp_output): os.remove(temp_output)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
